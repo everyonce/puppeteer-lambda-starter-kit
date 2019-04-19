@@ -6,11 +6,11 @@
     "package": "npm run package-prepare && cp chrome/headless_shell-67.0.3361.0.tar.gz dist/headless_shell.tar.gz && cd dist && zip -rq ../package.zip . && cd ..",
     "package-prepare": "npm run babel && cp package.json dist && cd dist && npm config set puppeteer_skip_chromium_download true -g && npm install --production",
     "babel": "rm -rf dist && mkdir dist && \"./node_modules/.bin/babel\" src --out-dir dist",
-    "local": "npm run babel && cp -r node_modules dist && node dist/starter-kit/local.js",
+    "local": "npm run babel-cli && cp -r node_modules dist && node dist/starter-kit/local.js",
     "package-nochrome": "npm run package-prepare && cd dist && zip -rq ../package.zip ."
   },
   "dependencies": {
-    "babel": "^6.23.0",
+    "babel-cli": "^6.23.0",
     "dateformat": "^3.0.3",
     "puppeteer": "^1.1.1",
     "request": "^2.88.0",

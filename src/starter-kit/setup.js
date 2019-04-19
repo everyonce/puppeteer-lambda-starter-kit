@@ -6,9 +6,11 @@ const puppeteer = require('puppeteer');
 const config = require('./config');
 
 exports.getBrowser = (() => {
+  console.log("starting getbrowser");
   let browser;
   return async () => {
     if (typeof browser === 'undefined' || !await isBrowserAvailable(browser)) {
+      console.log("got a browser, starting it.");
       await setupChrome();
       browser = await puppeteer.launch({
         headless: true,
@@ -16,8 +18,9 @@ exports.getBrowser = (() => {
         args: config.launchOptionForLambda,
         dumpio: !!exports.DEBUG,
       });
-      debugLog(async (b) => `launch done: ${await browser.version()}`);
+      console.log(async (b) => `launch done: ${await browser.version()}`);
     }
+  console.log("returning browser");
     return browser;
   };
 })();
@@ -26,7 +29,7 @@ const isBrowserAvailable = async (browser) => {
   try {
     await browser.version();
   } catch (e) {
-    debugLog(e); // not opened etc.
+     console.log(e); // not opened etc.
     return false;
   }
   return true;
@@ -35,13 +38,13 @@ const isBrowserAvailable = async (browser) => {
 const setupChrome = async () => {
   if (!await existsExecutableChrome()) {
     if (await existsLocalChrome()) {
-      debugLog('setup local chrome');
+       console.log('setup local chrome');
       await setupLocalChrome();
     } else {
-      debugLog('setup s3 chrome');
+       console.log('setup s3 chrome');
       await setupS3Chrome();
     }
-    debugLog('setup done');
+     console.log('setup done');
   }
 };
 
@@ -90,12 +93,3 @@ const setupS3Chrome = () => {
   });
 };
 
-const debugLog = (log) => {
-  if (config.DEBUG) {
-    let message = log;
-    if (typeof log === 'function') message = log();
-    Promise.resolve(message).then(
-      (message) => console.log(message)
-    );
-  }
-};

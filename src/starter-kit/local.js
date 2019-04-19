@@ -3,6 +3,7 @@ const config = require('./config');
 const puppeteer = require('puppeteer');
 
 (async () => {
+    console.log("running local");
     const browser = await puppeteer.launch({
         headless: false,
         slowMo: process.env.SLOWMO_MS,

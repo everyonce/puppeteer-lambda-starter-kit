@@ -1,29 +1,35 @@
 const setup = require('./starter-kit/setup');
 const dateFormat = require('dateformat');
+const request = require('request-promise');
+const AWS = require('aws-sdk');
+const CREDS = require('./marathoncreds');
 
 // this handler signature requires AWS Lambda Nodejs v8.1
 exports.handler = async (event, context) => {
+  console.log("Starting browser setup");
   const browser = await setup.getBrowser();
-
+  console.log("running script");
   return await exports.run(browser);
 };
 
 exports.run = async (browser) => {
   // implement here
   // this is sample
-  const page = (await browser.pages())[0];
+  console.log("starting main puppeteer script");
+  console.log("browser version " + await browser.version()  );
+  const page = await browser.newPage();
+  console.log("got new page, going to login page");
   await page.goto('https://www2.empoweredbymarathon.com/avs_marathon/jsp/login/marathon_login.jsp',
-      {waitUntil: ['domcontentloaded', 'networkidle0']}
+      {waitUntil: ['load','networkidle0']}
   );
 
   // dom element selectors
   const USERNAME_SELECTOR = 'input[name=username]';
   const PASSWORD_SELECTOR = 'input[name=password]';
   const BUTTON_SELECTOR = 'input[name=Submit]';
-  const CREDS = require('./marathoncreds');
 
   // initial login
-
+  console.log("logging into site");
   await page.click(USERNAME_SELECTOR);
   await page.keyboard.type(CREDS.username);
 
@@ -33,6 +39,7 @@ exports.run = async (browser) => {
   await page.click(BUTTON_SELECTOR);
   await page.waitForNavigation();
 
+  console.log("going to BOL page");
   await page.goto('https://www2.empoweredbymarathon.com/avs_marathon/jsp/dailybusiness/bol.jsp');
 
   const todayD=new Date();
@@ -68,6 +75,7 @@ exports.run = async (browser) => {
   await page.waitForSelector(DOWNLOAD_BUTTON_SELECTOR);
 
   await page.setRequestInterception(true);
+  console.log("request interception on, clicking download button");
 
   page.click(DOWNLOAD_BUTTON_SELECTOR);
 
@@ -81,7 +89,6 @@ exports.run = async (browser) => {
   });
 
 
-  const request = require('request-promise');
   const options = {
     encoding: null,
     method: xRequest._method,
@@ -101,7 +108,6 @@ exports.run = async (browser) => {
 
   // process.stdout.write(response);
 
-  const AWS = require('aws-sdk');
 
   const s3 = new AWS.S3();
   const params = {Bucket: 'rogers-bol-poc', Key: filename, Body: response};
